@@ -20,7 +20,7 @@ import (
 	"knative.dev/pkg/apis"
 )
 
-var triggerCondSet = apis.NewLivingConditionSet(TriggerConditionBroker, TriggerConditionSubscribed)
+var triggerCondSet = apis.NewLivingConditionSet(TriggerConditionBroker, TriggerConditionSubscribed, TriggerConditionAddressable)
 
 const (
 	// TriggerConditionReady has status True when all subconditions below have been set to True.
@@ -29,6 +29,10 @@ const (
 	TriggerConditionBroker apis.ConditionType = "Broker"
 
 	TriggerConditionSubscribed apis.ConditionType = "Subscribed"
+
+	// TriggerConditionAddressable has status true when this trigger
+	// meets the Addressable contract and has a non-empty hostname.
+	TriggerConditionAddressable apis.ConditionType = "Addressable"
 
 	// TriggerAnyFilter Constant to represent that we should allow anything.
 	TriggerAnyFilter = ""
@@ -79,4 +83,19 @@ func (ts *TriggerStatus) PropagateSubscriptionStatus(ss *SubscriptionStatus) {
 
 func (ts *TriggerStatus) MarkNotSubscribed(reason, messageFormat string, messageA ...interface{}) {
 	triggerCondSet.Manage(ts).MarkFalse(TriggerConditionSubscribed, reason, messageFormat, messageA...)
+}
+
+// SetAddress make this Trigger addressable by setting the hostname. It also
+// sets the TriggerConditionAddressable to true.
+func (ts *TriggerStatus) SetAddress(url *apis.URL) {
+	if url != nil {
+		ts.Address.Hostname = url.Host
+		ts.Address.URL = url
+		triggerCondSet.Manage(ts).MarkTrue(TriggerConditionAddressable)
+	} else {
+		ts.Address.Hostname = ""
+		ts.Address.URL = nil
+		triggerCondSet.Manage(ts).MarkFalse(TriggerConditionAddressable,
+			"emptyHostname", "hostname is the empty string")
+	}
 }

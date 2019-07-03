@@ -21,6 +21,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"knative.dev/pkg/apis"
+	duckv1alpha1 "knative.dev/pkg/apis/duck/v1alpha1"
 	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 	"knative.dev/pkg/kmeta"
 	"knative.dev/pkg/webhook"
@@ -30,7 +31,7 @@ import (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Trigger represents a request to have events delivered to a consumer from a
-// Broker's event pool.
+// Broker's event pool. Trigger implements the Addressable contract.
 type Trigger struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
@@ -94,6 +95,12 @@ type TriggerStatus struct {
 
 	// SubscriberURI is the resolved URI of the receiver for this Trigger.
 	SubscriberURI string `json:"subscriberURI,omitempty"`
+
+	// Trigger is Addressable. The address of a trigger resolves
+	// to the broker that is handing events for that trigger.
+	//
+	// It generally has the form {channel}.{namespace}.svc.{cluster domain name}
+	Address duckv1alpha1.Addressable `json:"address,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

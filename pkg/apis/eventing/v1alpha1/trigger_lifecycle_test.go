@@ -44,6 +44,11 @@ var (
 		Type:   TriggerConditionSubscribed,
 		Status: corev1.ConditionFalse,
 	}
+
+	triggerConditionAddressable = apis.Condition{
+		Type:   TriggerConditionAddressable,
+		Status: corev1.ConditionFalse,
+	}
 )
 
 func TestTriggerGetCondition(t *testing.T) {
@@ -121,6 +126,9 @@ func TestTriggerInitializeConditions(t *testing.T) {
 		want: &TriggerStatus{
 			Status: duckv1beta1.Status{
 				Conditions: []apis.Condition{{
+					Type:   TriggerConditionAddressable,
+					Status: corev1.ConditionUnknown,
+				}, {
 					Type:   TriggerConditionBroker,
 					Status: corev1.ConditionUnknown,
 				}, {
@@ -145,6 +153,9 @@ func TestTriggerInitializeConditions(t *testing.T) {
 		want: &TriggerStatus{
 			Status: duckv1beta1.Status{
 				Conditions: []apis.Condition{{
+					Type:   TriggerConditionAddressable,
+					Status: corev1.ConditionUnknown,
+				}, {
 					Type:   TriggerConditionBroker,
 					Status: corev1.ConditionFalse,
 				}, {
@@ -169,6 +180,9 @@ func TestTriggerInitializeConditions(t *testing.T) {
 		want: &TriggerStatus{
 			Status: duckv1beta1.Status{
 				Conditions: []apis.Condition{{
+					Type:   TriggerConditionAddressable,
+					Status: corev1.ConditionUnknown,
+				}, {
 					Type:   TriggerConditionBroker,
 					Status: corev1.ConditionUnknown,
 				}, {
@@ -199,6 +213,7 @@ func TestTriggerIsReady(t *testing.T) {
 		markKubernetesServiceExists bool
 		markVirtualServiceExists    bool
 		markSubscribed              bool
+		setAddress                  bool
 		wantReady                   bool
 	}{{
 		name:                        "all happy",
@@ -206,6 +221,7 @@ func TestTriggerIsReady(t *testing.T) {
 		markKubernetesServiceExists: true,
 		markVirtualServiceExists:    true,
 		markSubscribed:              true,
+		setAddress:                  true,
 		wantReady:                   true,
 	}, {
 		name:                        "broker sad",
@@ -219,6 +235,7 @@ func TestTriggerIsReady(t *testing.T) {
 		markBrokerExists:            true,
 		markKubernetesServiceExists: true,
 		markVirtualServiceExists:    true,
+		setAddress:                  true,
 		markSubscribed:              false,
 		wantReady:                   false,
 	}, {
@@ -237,6 +254,9 @@ func TestTriggerIsReady(t *testing.T) {
 			}
 			if test.markSubscribed {
 				ts.PropagateSubscriptionStatus(TestHelper.ReadySubscriptionStatus())
+			}
+			if test.setAddress {
+				ts.SetAddress(&apis.URL{Scheme: "http", Host: "foo.bar/triggers/baz"})
 			}
 			got := ts.IsReady()
 			if test.wantReady != got {
