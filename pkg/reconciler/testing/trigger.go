@@ -24,6 +24,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"knative.dev/pkg/apis"
 )
 
 // TriggerOption enables further configuration of a Trigger.
@@ -68,6 +69,14 @@ func WithTriggerSubscriberRef(gvk metav1.GroupVersionKind, name string) TriggerO
 // WithInitTriggerConditions initializes the Triggers's conditions.
 func WithInitTriggerConditions(t *v1alpha1.Trigger) {
 	t.Status.InitializeConditions()
+}
+
+// WithTriggerAddress sets the Broker's address.
+func WithTriggerAddress(URL string) TriggerOption {
+	return func(t *v1alpha1.Trigger) {
+		addressURL, _ := apis.ParseURL(URL)
+		t.Status.SetAddress(addressURL)
+	}
 }
 
 // WithTriggerBrokerReady initializes the Triggers's conditions.

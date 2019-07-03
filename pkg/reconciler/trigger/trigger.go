@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/knative/eventing/pkg/apis/eventing/v1alpha1"
@@ -43,6 +44,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	corev1listers "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
+	"knative.dev/pkg/apis"
 	"knative.dev/pkg/controller"
 )
 
@@ -59,6 +61,7 @@ const (
 	triggerChannelFailed      = "TriggerChannelFailed"
 	ingressChannelFailed      = "IngressChannelFailed"
 	triggerServiceFailed      = "TriggerServiceFailed"
+	brokerAddressFailed       = "BrokerAddressFailed"
 )
 
 type Reconciler struct {
@@ -130,8 +133,9 @@ func (r *Reconciler) reconcile(ctx context.Context, t *v1alpha1.Trigger) error {
 	//   - Trigger Channel
 	//   - Ingress Channel
 	//   - Filter Service
-	// 3. Find the Subscriber's URI.
-	// 4. Creates a Subscription from the Broker's Trigger Channel to this Trigger via the Broker's
+	// 3. Update the Trigger's addressable to be relative to the Broker.
+	// 4. Find the Subscriber's URI.
+	// 5. Creates a Subscription from the Broker's Trigger Channel to this Trigger via the Broker's
 	//    Filter Service with a specific path, and reply set to the Broker's Ingress Channel.
 
 	if t.DeletionTimestamp != nil {
@@ -185,6 +189,19 @@ func (r *Reconciler) reconcile(ctx context.Context, t *v1alpha1.Trigger) error {
 			return err
 		}
 	}
+
+	brokerAddress := b.Status.Address.URL
+	if brokerAddress == nil {
+		logging.FromContext(ctx).Error("Broker Address not populated")
+		r.Recorder.Eventf(t, corev1.EventTypeWarning, brokerAddressFailed, "Broker's Address not found")
+		return errors.New("failed to find Broker's Address")
+	}
+	addressURL, err := apis.ParseURL(fmt.Sprintf("%s/trigger/%s", brokerAddress, strings.ToLower(string(t.ObjectMeta.GetUID()))))
+	if err != nil {
+		logging.FromContext(ctx).Error("Unable to construct the Trigger's Address URL", zap.Error(err))
+		return err
+	}
+	t.Status.SetAddress(addressURL)
 
 	subscriberURI, err := duck.SubscriberSpec(ctx, r.DynamicClientSet, t.Namespace, t.Spec.Subscriber, track)
 	if err != nil {

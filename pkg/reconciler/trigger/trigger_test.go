@@ -51,10 +51,11 @@ import (
 )
 
 const (
-	testNS      = "test-namespace"
-	triggerName = "test-trigger"
-	triggerUID  = "test-trigger-uid"
-	brokerName  = "test-broker"
+	testNS        = "test-namespace"
+	triggerName   = "test-trigger"
+	triggerUID    = "test-trigger-uid"
+	brokerName    = "test-broker"
+	brokerAddress = "foo"
 
 	subscriberAPIVersion = "v1"
 	subscriberKind       = "Service"
@@ -278,6 +279,7 @@ func TestAllCases(t *testing.T) {
 					// The first reconciliation will initialize the status conditions.
 					reconciletesting.WithInitTriggerConditions,
 					reconciletesting.WithTriggerBrokerReady(),
+					reconciletesting.WithTriggerAddress(fmt.Sprintf("http://%s/trigger/%s", brokerAddress, triggerUID)),
 					reconciletesting.WithTriggerNotSubscribed("NotSubscribed", "inducing failure for create subscriptions"),
 					reconciletesting.WithTriggerStatusSubscriberURI(subscriberURI),
 				),
@@ -314,6 +316,7 @@ func TestAllCases(t *testing.T) {
 					// The first reconciliation will initialize the status conditions.
 					reconciletesting.WithInitTriggerConditions,
 					reconciletesting.WithTriggerBrokerReady(),
+					reconciletesting.WithTriggerAddress(fmt.Sprintf("http://%s/trigger/%s", brokerAddress, triggerUID)),
 					reconciletesting.WithTriggerNotSubscribed("NotSubscribed", "inducing failure for delete subscriptions"),
 					reconciletesting.WithTriggerStatusSubscriberURI(subscriberURI),
 				),
@@ -352,6 +355,7 @@ func TestAllCases(t *testing.T) {
 					// The first reconciliation will initialize the status conditions.
 					reconciletesting.WithInitTriggerConditions,
 					reconciletesting.WithTriggerBrokerReady(),
+					reconciletesting.WithTriggerAddress(fmt.Sprintf("http://%s/trigger/%s", brokerAddress, triggerUID)),
 					reconciletesting.WithTriggerNotSubscribed("NotSubscribed", "inducing failure for create subscriptions"),
 					reconciletesting.WithTriggerStatusSubscriberURI(subscriberURI),
 				),
@@ -390,6 +394,7 @@ func TestAllCases(t *testing.T) {
 					// The first reconciliation will initialize the status conditions.
 					reconciletesting.WithInitTriggerConditions,
 					reconciletesting.WithTriggerBrokerReady(),
+					reconciletesting.WithTriggerAddress(fmt.Sprintf("http://%s/trigger/%s", brokerAddress, triggerUID)),
 					reconciletesting.WithTriggerNotSubscribed("SubscriptionNotReady", "Subscription is not ready: nil"),
 					reconciletesting.WithTriggerStatusSubscriberURI(subscriberURI),
 				),
@@ -427,6 +432,7 @@ func TestAllCases(t *testing.T) {
 					// The first reconciliation will initialize the status conditions.
 					reconciletesting.WithInitTriggerConditions,
 					reconciletesting.WithTriggerBrokerReady(),
+					reconciletesting.WithTriggerAddress(fmt.Sprintf("http://%s/trigger/%s", brokerAddress, triggerUID)),
 					reconciletesting.WithTriggerNotSubscribed("SubscriptionNotReady", "Subscription is not ready: nil"),
 					reconciletesting.WithTriggerStatusSubscriberURI(subscriberURI),
 				),
@@ -460,6 +466,7 @@ func TestAllCases(t *testing.T) {
 					// The first reconciliation will initialize the status conditions.
 					reconciletesting.WithInitTriggerConditions,
 					reconciletesting.WithTriggerBrokerReady(),
+					reconciletesting.WithTriggerAddress(fmt.Sprintf("http://%s/trigger/%s", brokerAddress, triggerUID)),
 					reconciletesting.WithTriggerNotSubscribed("SubscriptionNotReady", "Subscription is not ready: nil"),
 					reconciletesting.WithTriggerStatusSubscriberURI(subscriberURI),
 				),
@@ -491,6 +498,7 @@ func TestAllCases(t *testing.T) {
 					// The first reconciliation will initialize the status conditions.
 					reconciletesting.WithInitTriggerConditions,
 					reconciletesting.WithTriggerBrokerReady(),
+					reconciletesting.WithTriggerAddress(fmt.Sprintf("http://%s/trigger/%s", brokerAddress, triggerUID)),
 					reconciletesting.WithTriggerSubscribed(),
 					reconciletesting.WithTriggerStatusSubscriberURI(subscriberURI),
 				),
